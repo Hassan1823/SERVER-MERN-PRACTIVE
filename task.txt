@@ -1,0 +1,28 @@
+/*------------------- Server Part -----------------*/
+
+===== Basic Setup
+1) connect the server
+
+2) test the api and set for unknown routes
+
+3) connect the DB
+
+3) setup the error template 
+
+4) create the middleware for the all types of error and for async errors
+
+===== Model Design Schema
+1) create schema model for user
+
+2) create the user controller for the use 
+
+3) register user 
+
+4) generate access token and code and send the code to the user email
+
+5) function for the login user and send the handle of jwt auth 
+//create another file in the utils and set in it
+
+6) logout user also delete session data from redis
+
+7) check user is authenticated of not

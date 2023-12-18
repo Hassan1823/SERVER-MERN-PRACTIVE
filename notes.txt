@@ -23,3 +23,6 @@ npm i --save-dev @types/ejs
 npm i --save-dev @types/nodemailer
 
 npm i cloudinary
+
+npm install node-cron
+npm install @types/node-cron

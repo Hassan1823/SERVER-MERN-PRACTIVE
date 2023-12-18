@@ -9,6 +9,7 @@ import { createCourse } from "../services/course.service";
 import ErrorHandler from "../utils/ErrorHandler";
 import { redis } from "../utils/redis";
 import sendMail from "../utils/sendMails";
+import NotificationModel from "../models/notification.model";
 
 // ! upload course
 export const uploadCourse = CatchAsyncError(
@@ -205,6 +206,13 @@ export const addQuestion = CatchAsyncError(
       // ! add this question to our user course content
       courseContent.questions.push(newQuestion);
 
+      // ! send notification to the admin
+      await NotificationModel.create({
+        user: req.user?._id,
+        title: "New Question Added",
+        message: `You Have A New Question In : ${courseContent.title}`,
+      });
+
       // ! save the updated course
       await course?.save();
 
@@ -268,7 +276,12 @@ export const addAnswer = CatchAsyncError(
 
       // ! send notification if someone answers the question
       if (req.user?._id === question.user._id) {
-        // ! create a notification
+        // ! send notification to the admin
+        await NotificationModel.create({
+          user: req.user?._id,
+          title: "New Answer Added",
+          message: `You Have A New Question Reply In : ${courseContent.title}`,
+        });
       } else {
         const data = {
           name: newAnswer.user.name,
@@ -282,7 +295,7 @@ export const addAnswer = CatchAsyncError(
 
         try {
           await sendMail({
-            email: newAnswer.user?.email ,
+            email: newAnswer.user?.email,
             subject: "Question Reply",
             template: "question-reply.ejs",
             data: data,

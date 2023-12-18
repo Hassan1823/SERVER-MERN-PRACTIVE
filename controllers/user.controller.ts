@@ -1,22 +1,26 @@
 require("dotenv").config();
-import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
+import { NextFunction, Request, Response } from "express";
+import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 
 // ! local imports
-import userModel, { IUser } from "../models/user.model";
-import ErrorHandler from "../utils/ErrorHandler";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import cloudinary from "cloudinary";
 import path from "path";
-import sendMail from "../utils/sendMails";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import userModel, { IUser } from "../models/user.model";
+import {
+  getAllUsersService,
+  getUserById,
+  updateUserRoleService,
+} from "../services/user.service";
+import ErrorHandler from "../utils/ErrorHandler";
 import {
   accessTokenOptions,
   refreshTokenOptions,
   sendToken,
 } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { getUserById } from "../services/user.service";
-import cloudinary from "cloudinary";
+import sendMail from "../utils/sendMails";
 
 // !register user
 
@@ -145,7 +149,7 @@ export const activateUser = CatchAsyncError(
 
       res.status(201).json({
         success: true,
-        message:`🚀 User Registered Successfully`
+        message: `🚀 User Registered Successfully`,
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
@@ -427,6 +431,55 @@ export const updateProfilePicture = CatchAsyncError(
       res.status(200).json({
         success: true,
         user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+// ~ get all users ---only for admin
+export const getAllUsers = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      getAllUsersService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+// ~ update user roles --- only for admin
+export const updateUserRole = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id, role } = req.body;
+      updateUserRoleService(res, id, role);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+// ~ delete user ---only for admin
+export const deleteUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const user = await userModel.findById(id);
+
+      if (!user) {
+        return next(new ErrorHandler(`⚠️ User Not Found`, 404));
+      }
+      await user.deleteOne({ id });
+
+      // ! also delete the user from redis
+      await redis.del(id);
+
+      res.status(200).json({
+        success: true,
+        message: `🚀 User Deleted Successfully`,
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));

@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import path from "path";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import CourseModel from "../models/course.model";
-import { createCourse } from "../services/course.service";
+import { createCourse, getAllCoursesService } from "../services/course.service";
 import ErrorHandler from "../utils/ErrorHandler";
 import { redis } from "../utils/redis";
 import sendMail from "../utils/sendMails";
@@ -109,7 +109,7 @@ export const getSingleCourse = CatchAsyncError(
 );
 
 // ! get all courses -- without purchasing
-export const getAllCourses = CatchAsyncError(
+export const getCourses = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const isCacheExist = await redis.get("allCourses");
@@ -313,6 +313,18 @@ export const addAnswer = CatchAsyncError(
       });
     } catch (error: any) {
       return next(new ErrorHandler(`🥲 ${error.message}`, 500));
+    }
+  }
+);
+
+
+// ~ get all courses ---only for admin
+export const getAllCourses = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      getAllCoursesService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
     }
   }
 );

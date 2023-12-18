@@ -26,3 +26,12 @@
 6) logout user also delete session data from redis
 
 7) check user is authenticated of not
+
+=============
+
+8) get all users, orders and courses for admin 
+
+9) change the user role 
+
+10) delete user, course 
+
